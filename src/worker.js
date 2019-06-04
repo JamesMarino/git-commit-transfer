@@ -65,7 +65,7 @@ const isValidCommit = ({ commit, emailFilterList }) => {
     return emailFilterList.includes(commit.author_email);
 };
 
-const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilter }) => {
+const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilterList, commitEmail }) => {
     const repository = git(gitDirectory);
     const finishedCommitDetails = [];
 
@@ -77,15 +77,13 @@ const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilter }) => {
         let commitCount = 0;
 
         for (const commit of repoLog) {
-            if (isValidCommit({ commit, emailFilterList: [emailFilter] })) {
+            if (isValidCommit({ commit, emailFilterList })) {
                 await fs.appendFile(logPath, `${commit.message}\n`);
                 await repository.add(logPath);
                 await repository.commit(`${repos.repository} - '${commit.message}'`, {
                     '--author': `${
                         commit.author_name ? commit.author_name : loggingConstants.defaultName
-                    } <${
-                        commit.author_email ? commit.author_email : loggingConstants.defaultEmail
-                    }>`,
+                    } <${commitEmail ? commitEmail : loggingConstants.defaultEmail}>`,
                     '--date': `${commit.date}`,
                 });
                 commitCount += 1;

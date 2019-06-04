@@ -16,13 +16,20 @@ const main = async () => {
         const inputDirectory = program.inputDirectory;
         const outputDirectory = program.outputDirectory;
         const repoName = program.repoName;
-        const emailFilter = program.emailFilter;
+        const emailFilterList = program.emailFilter.split(',');
+        const commitEmail = program.commitEmail;
 
         const repoCommits = await getRepoCommits({ inputDirectory });
         const gitDirectory = await initialiseRepo({ outputDirectory, repoName, repoCommits });
-        const resultData = await commitNewCommits({ gitDirectory, repoCommits, emailFilter });
+        const resultData = await commitNewCommits({
+            gitDirectory,
+            repoCommits,
+            emailFilterList,
+            commitEmail,
+        });
 
-        await commitResultData({ gitDirectory, resultData })
+        await commitResultData({ gitDirectory, resultData });
+        console.log('All Done.');
     } catch (error) {
         console.error(loggingConstants.genericError({ errorMessage: error.toString() }));
     }

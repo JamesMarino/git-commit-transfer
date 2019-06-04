@@ -2,8 +2,11 @@ const fs = require('fs').promises;
 const path = require('path');
 const commander = require('commander');
 const git = require('simple-git/promise');
+
 const fileUtils = require('./utils/file.utils');
 const optionsConstants = require('./constants/options.constants');
+const loggingConstants = require('./constants/logging.constants');
+const pathConstants = require('./constants/paths.constants');
 
 const getProgram = () => {
     const program = new commander.Command();
@@ -54,7 +57,7 @@ const getRepoCommits = async ({ inputDirectory }) => {
     const resolvedCommits = await Promise.all(commitList.map(commit => commit.commits));
     commitList.forEach((commit, index) => (commit.commits = resolvedCommits[index]));
 
-    console.log('Extracted Commits all Commits.');
+    console.log(loggingConstants.commitExtractionFinished);
     return commitList;
 };
 
@@ -64,11 +67,13 @@ const isValidCommit = ({ commit, emailFilterList }) => {
 
 const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilter }) => {
     const repository = git(gitDirectory);
-    const finishedLogPaths = [];
+    const finishedCommitDetails = [];
 
     for (const repos of repoCommits) {
         const { repoLog } = repos.commits;
-        const logPath = `${gitDirectory}/log/${repos.repository}.log`;
+        const logPath = `${gitDirectory}${pathConstants.loggingDirectory}${repos.repository}${
+            pathConstants.loggingFileExtension
+        }`;
         let commitCount = 0;
 
         for (const commit of repoLog) {
@@ -76,8 +81,10 @@ const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilter }) => {
                 await fs.appendFile(logPath, `${commit.message}\n`);
                 await repository.add(logPath);
                 await repository.commit(`${repos.repository} - '${commit.message}'`, {
-                    '--author': `${commit.author_name ? commit.author_name : 'Your Name'} <${
-                        commit.author_email ? commit.author_email : 'name@example.com'
+                    '--author': `${
+                        commit.author_name ? commit.author_name : loggingConstants.defaultName
+                    } <${
+                        commit.author_email ? commit.author_email : loggingConstants.defaultEmail
                     }>`,
                     '--date': `${commit.date}`,
                 });
@@ -86,42 +93,64 @@ const commitNewCommits = async ({ gitDirectory, repoCommits, emailFilter }) => {
         }
 
         console.log(
-            `Committing from ${repos.repository} to ${logPath}. Found ${commitCount} commits.`,
+            loggingConstants.repositoryCommitsFinished({
+                repoName: repos.repository,
+                logPath,
+                commitCount,
+            }),
         );
-        finishedLogPaths.push(logPath);
+
+        finishedCommitDetails.push({
+            repoName: repos.repository,
+            logPath,
+            commitCount,
+        });
     }
 
-    console.log(`Finished committing to paths.`);
-    return finishedLogPaths;
+    console.log(loggingConstants.finalCommits);
+    return finishedCommitDetails;
 };
 
 const initialiseRepo = async ({ outputDirectory, repoName, repoCommits }) => {
     const completeNewDirectory = `${outputDirectory}/${repoName}`;
-    const readMePath = `${completeNewDirectory}/README.md`;
-    const commitPath = `${completeNewDirectory}/commit.json`;
-    const logPath = `${completeNewDirectory}/log`;
+    const readMePath = `${completeNewDirectory}/${pathConstants.readmeFile}`;
+    const commitPath = `${completeNewDirectory}/${pathConstants.commitJsonFile}`;
+    const logPath = `${completeNewDirectory}${pathConstants.loggingDirectory}`;
+
+    if (fileUtils.directoryExists({ directory: completeNewDirectory })) {
+        fileUtils.renameDirectoryTimestamp({ oldDirectory: completeNewDirectory });
+    }
 
     await fs.mkdir(completeNewDirectory, { recursive: true });
     await fs.mkdir(logPath, { recursive: true });
 
-    await fs.appendFile(readMePath, '# Git Transfer Data');
+    await fs.appendFile(readMePath, loggingConstants.initialReadMeText);
     await fs.appendFile(commitPath, JSON.stringify(repoCommits, null, 4));
 
     const repository = git(completeNewDirectory);
     await repository.init(false);
     await repository.add([readMePath, commitPath]);
-    await repository.commit('Initial Commit');
+    await repository.commit(loggingConstants.initialCommitMessage);
 
-    console.log('Initialised Repository.');
+    console.log(loggingConstants.initialCommitNotification);
     return completeNewDirectory;
 };
 
 const validateArguments = ({ program }) => {
     optionsConstants.forEach(option => {
         if (!program[option.optionName]) {
-            throw new Error('Invalid Arguments. Use --help if necessary.');
+            throw new Error(loggingConstants.argumentsInvalid);
         }
     });
+};
+
+const commitResultData = async ({ gitDirectory, resultData }) => {
+    const readMePath = `${gitDirectory}/${pathConstants.readmeFile}`;
+    await fs.appendFile(readMePath, loggingConstants.finalReadMeText({ resultData }));
+
+    const repository = git(gitDirectory);
+    await repository.add(readMePath);
+    await repository.commit(loggingConstants.finalCommitMessage);
 };
 
 module.exports = {
@@ -130,4 +159,5 @@ module.exports = {
     commitNewCommits,
     initialiseRepo,
     validateArguments,
+    commitResultData,
 };

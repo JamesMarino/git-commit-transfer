@@ -1,9 +1,11 @@
+const loggingConstants = require('./constants/logging.constants');
 const {
     getProgram,
     getRepoCommits,
     commitNewCommits,
     initialiseRepo,
     validateArguments,
+    commitResultData,
 } = require('./worker');
 
 const main = async () => {
@@ -18,9 +20,11 @@ const main = async () => {
 
         const repoCommits = await getRepoCommits({ inputDirectory });
         const gitDirectory = await initialiseRepo({ outputDirectory, repoName, repoCommits });
-        await commitNewCommits({ gitDirectory, repoCommits, emailFilter });
+        const resultData = await commitNewCommits({ gitDirectory, repoCommits, emailFilter });
+
+        await commitResultData({ gitDirectory, resultData })
     } catch (error) {
-        console.error(`Error: ${error.toString()}`);
+        console.error(loggingConstants.genericError({ errorMessage: error.toString() }));
     }
 };
 

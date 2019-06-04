@@ -24,13 +24,17 @@ the updated commits.
 
 ## Usage
 
-Note: Use `node index.js --help` for an explanation of parameters.
+```bash
+npm install git-transfer -g
+```
 
 ```bash
-node index.js \
---input-directory /Users/james/MyDir1 \
---output-directory /Users/james/MyDir2 \
---repo-name TestRepo \
---email-filter james@marino.io,james@example.com \
---commit-email james@marino.io
+git-transfer \
+    --input-directory /Users/james/Repos \
+    --output-directory /Users/james/Desktop \
+    --repo-name MyRepo \
+    --email-filter james@example.com,james@email.com \
+    --commit-email james@example.com
 ```
+
+Note: Use `node index.js --help` for an explanation of parameters.

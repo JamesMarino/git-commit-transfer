@@ -11,17 +11,17 @@ const options = [
     },
     {
         optionName: 'repoName',
-        param: '-o, --repo-name <value>',
+        param: '-r, --repo-name <value>',
         description: 'Name of the new repository to create',
     },
     {
         optionName: 'emailFilter',
-        param: '-o, --email-filter <items>',
+        param: '-f, --email-filter <items>',
         description: 'Filter commits by email. This is a comma separated list',
     },
     {
         optionName: 'commitEmail',
-        param: '-o, --commit-email <value>',
+        param: '-e, --commit-email <value>',
         description: 'What email to commit as',
     },
 ];

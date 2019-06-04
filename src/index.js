@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 const loggingConstants = require('./constants/logging.constants');
 const {
     getProgram,

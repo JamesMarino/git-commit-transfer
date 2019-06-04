@@ -1,7 +1,7 @@
 {
   "author": "James Marino <james@marino.io>",
   "name": "git-transfer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Transfer Git Commits without the content",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JamesMarino/GitTransfer.git"
+  },
+  "bin": {
+    "git-transfer": "src/index.js"
   },
   "keywords": [
     "git",

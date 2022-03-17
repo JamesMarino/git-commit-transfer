@@ -26,7 +26,7 @@
   "homepage": "https://github.com/JamesMarino/GitTransfer#readme",
   "dependencies": {
     "commander": "^2.20.0",
-    "simple-git": "^1.113.0"
+    "simple-git": "^3.3.0"
   },
   "devDependencies": {
     "eslint": "^5.16.0"
